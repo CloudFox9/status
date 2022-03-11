@@ -69,7 +69,6 @@ def local(client,messaage):
 @app.on_message(filters.command(["show","view"]))
 def my_handr(client, message):
         print("Data oUT")
-
         print(list(records.keys()))
         string="Date Data Present With System \n"
         for r in list(records.keys()):
