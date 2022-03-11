@@ -1,0 +1,119 @@
+from copyreg import pickle
+from pydoc import cli
+from numpy import record
+from pyrogram import Client, filters
+import re
+from pickle import dump,load
+from datetime import datetime
+
+    #"date":["texts","attachment_path"]
+try:
+    records=load(open("cord.pkl",'rb'))
+except FileNotFoundError:
+    records={"Date",[["texts"],["file_pathand file_name array/list"]]} ##Intital Data No Null :P
+def recorder(message,typ,fname=str(datetime.now().date()).replace('-','_')):
+    print("Data In")
+    date=str(datetime.now().date()).replace('-','_')
+    message=str(message)
+    if date not in list(records.keys()):
+        records[date]=[[],[]]
+    if typ=="text":
+        records[date][0].append(message)
+    elif typ=="file":
+        
+        records[date][1].append([message,fname])
+    else:
+        return -1
+    dump(records,open("cord.pkl",'wb'))
+
+
+app = Client(
+    "musico_bot",
+    bot_token="5255640546:AAGYUBWXW9GiQ1PgeQ6pGNH3X9lk0GR6ciw",
+    api_id=1652093,
+    api_hash="958f5813207da4591617703909e932f2"
+)
+
+
+@app.on_message(filters.command(["start"]))
+def my_hadler(client, message):
+    message.reply("Access Log Enabled , Pseudo User Detected")    
+
+@app.on_message(filters.command(["help"]))
+def my_handler(client, message):
+    message.reply("Help yourself")
+
+@app.on_message(filters.command(["check"]))
+def my_handle(client, message):
+    message.reply("Help yourself")
+
+
+
+
+@app.on_message(filters.regex('[0-9]{4}_[0-9]{2}_[0-9]{2}'))
+def local(client,messaage):
+    form=str(messaage.text)[1:]
+    messaage.reply("Messages From : "+str(form))
+    messaage.reply("Text Messages ")
+    for i in records[form][0]:
+        messaage.reply(i)
+    messaage.reply("Media Messages ")
+    
+    for i in records[form][1]:
+        messaage.reply_document(i[0],file_name=i[1])
+    if not records[form][1]:
+        messaage.reply("None")
+
+    messaage.reply("ACK")
+
+@app.on_message(filters.command(["show","view"]))
+def my_handr(client, message):
+        print("Data oUT")
+
+        print(list(records.keys()))
+        string="Date Data Present With System \n"
+        for r in list(records.keys()):
+            print(type(r))
+            print(r)
+            string+="/"+str(r)+'\n'
+            print(records[r])
+        message.reply(string)
+        message.reply("ACK") 
+
+
+
+@app.on_message(filters.text & filters.private)
+def echo(client, message):
+    print("Data To Text")
+
+    msg=message.text
+    
+    recorder(msg,"text")
+    message.reply("ACK") 
+
+    
+@app.on_message(filters.media & filters.private)
+def echo(client, message):
+    print("Data In To Record")
+    
+    try:
+        path=message.download()
+        if path:
+            
+            name_1=str(path).split('\\')[-1]
+            if name_1.lower() != "none":
+                recorder(path,"file",fname=str(name_1))
+            else:
+                recorder(path,"file")
+
+            message.reply("ACK")
+            
+            
+    except Exception as e:
+        print(e)
+        message.reply("Error ! Status code : CRPT ?") 
+
+
+
+print("ACK -> Launch")
+app.run()
